@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 
+print("hello")
+
 class FinancialTracker:
     def __init__(self, root):
         self.root = root
