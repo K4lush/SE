@@ -5,9 +5,10 @@ import sqlite3
 from financial_tracker import deploy
 
 class User:
-    def __init__(self, username, password):
+    def __init__(self, username, password, status):
         self.username = username
         self.password = password
+        self.status = status
 
 class UserDatabaseManager:
     def __init__(self, db_name='user_database.db'):
@@ -121,7 +122,7 @@ class AuthenticationApp:
         user_data = self.db_manager.get_user(username)
         if user_data and user_data[2] == password:  # Check if user exists and password is correct
             # Update the income and expense_entries for the current user
-            self.current_user = User(username, password)
+            self.current_user = User(username, password, status=True)
             self.root.destroy()
             deploy(self.current_user)  # Pass the current user to the main app
         else:
@@ -134,7 +135,7 @@ class AuthenticationApp:
         if self.db_manager.user_exists(username):
             messagebox.showerror("Signup Failed", "Username already exists")
         else:
-            new_user = User(username, password)
+            new_user = User(username, password, status=True)
             self.db_manager.add_user(new_user)
             messagebox.showinfo("Signup Successful", "Account created successfully. Please login.")
 

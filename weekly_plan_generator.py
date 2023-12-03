@@ -148,4 +148,4 @@ def generate_weekly_plan(expense_values):
     root.mainloop()
 
 # Example usage:
-generate_weekly_plan({"Food": 100, "Essentials": 50, "Shopping": 75})
+# generate_weekly_plan({"Food": 100, "Essentials": 50, "Shopping": 75})

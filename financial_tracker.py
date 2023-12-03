@@ -10,23 +10,14 @@ class FinancialTracker:
         self.root.title("Financial Tracker")
         self.current_user = current_user
 
+
         # Initialize variables
         self.income = 0.0
         self.expense_entries = {}
 
-
         # Create GUI elements
-        self.x()
+        self.show_form()
 
-    def x(self):
-        # Check if the user's income in the database is null (or zero)
-        if self.current_user.income == 0.0:
-            # If so, display the form
-            self.show_form()
-        else:
-            print("h")
-    # Otherwise, proceed with the normal GUI elements
-    # ... (rest of the existing code)
 
     def show_form(self):
         # Generate Plan button
@@ -76,6 +67,8 @@ class FinancialTracker:
         add_expense_button = tk.Button(self.root, text="Add Expense", command=self.add_expense)
         add_expense_button.grid(row=1, column=3, padx=10, pady=10)
 
+
+
     def add_income(self):
         # Get the income amount from the Entry widget
         income_amount = self.income_entry.get()
@@ -90,8 +83,8 @@ class FinancialTracker:
             # Update the label with the added income amount
             self.income_display_label.config(text=f"Added income: {income_amount}")
 
-            # Update the user's income in the database
-            self.update_user_income()
+            # # Update the user's income in the database
+            # self.update_user_income()
 
             # Clear the income entry field for new input
             self.income_entry.delete(0, tk.END)
@@ -99,11 +92,11 @@ class FinancialTracker:
             # Display an error message if the input is not a valid number
             messagebox.showerror("Invalid Input", "Please enter a valid number for income.")
 
-    def update_user_income(self):
-        # Update the user's income in the database
-        self.db_manager.cursor.execute('UPDATE users SET income=? WHERE username=?',
-                                       (self.current_user.income, self.current_user.username))
-        self.db_manager.conn.commit()
+    # def update_user_income(self):
+    #     # Update the user's income in the database
+    #     self.db_manager.cursor.execute('UPDATE users SET income=? WHERE username=?',
+    #                                    (self.current_user.income, self.current_user.username))
+    #     self.db_manager.conn.commit()
 
     def add_expense(self):
         # Get the selected expense category and the expense amount
@@ -144,6 +137,8 @@ class FinancialTracker:
         analyze_expenses_and_income(self.income , self.expense_entries)
         generate_weekly_plan(self.expense_entries)
 
+
+
     def generate_financial_advice(self):
         display_financial_education(self.income)
 
@@ -152,6 +147,7 @@ class FinancialTracker:
 #     root = tk.Tk()
 #     app = FinancialTracker(root)
 #     root.mainloop()
+
 
 def deploy(current_user):
     root = tk.Tk()
