@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from income_expense_analyzer import analyze_expenses_and_income
 from weekly_plan_generator import generate_weekly_plan
+from financial_education import display_financial_education
 
 class FinancialTracker:
     def __init__(self, root):
@@ -25,7 +26,7 @@ class FinancialTracker:
         generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
 
         # Financial Education (Use Case)
-        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
+        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.d())
         education_button.grid(row=3, column=2, padx=10, pady=10)
 
         # added code
@@ -128,17 +129,21 @@ class FinancialTracker:
         analyze_expenses_and_income(self.income , self.expense_entries)
         generate_weekly_plan(self.expense_entries)
 
-    def financial_education(self):
-        pass
+    def d(self):
+        display_financial_education(self.income)
 
 #
-# if __name__ == "__main__":
-#     root = tk.Tk()
-#     app = FinancialTracker(root)
-#     root.mainloop()
-
-def deploy():
+if __name__ == "__main__":
     root = tk.Tk()
     app = FinancialTracker(root)
     root.mainloop()
+
+# def deploy():
+#     root = tk.Tk()
+#     app = FinancialTracker(root)
+#     root.mainloop()
 #
+
+#
+
+
