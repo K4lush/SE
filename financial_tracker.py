@@ -10,7 +10,7 @@ class FinancialTracker:
 
 
         # Initialize variables
-        self.income_entries = []
+        self.income = 0.0
         self.expense_entries = []
 
         # Create GUI elements
@@ -67,7 +67,7 @@ class FinancialTracker:
         try:
             income_amount = float(income_amount)
             # Add the income amount to the income_entries list
-            self.income_entries.append(income_amount)
+            self.income = income_amount
 
             # Display a message box with the added income amount
             print("Income Added", f"Income of {income_amount} has been added.")
@@ -107,8 +107,8 @@ class FinancialTracker:
 
     def generate_plan(self):
         # Call the external modules for analysis and plan generation
-        analyze_expenses_and_income(self.income_entries, self.expense_entries)
-        generate_weekly_plan(self.income_entries, self.expense_entries)
+        analyze_expenses_and_income(self.income , self.expense_entries)
+        # generate_weekly_plan(self.expense_entries)
 
 
 if __name__ == "__main__":
