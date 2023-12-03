@@ -26,7 +26,7 @@ class FinancialTracker:
         generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
 
         # Financial Education (Use Case)
-        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.d())
+        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.d)
         education_button.grid(row=3, column=2, padx=10, pady=10)
 
         # added code
