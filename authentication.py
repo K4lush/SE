@@ -1,26 +1,45 @@
 import tkinter as tk
 from tkinter import messagebox
 import sqlite3
+from financial_tracker import deploy
 
-# Create a SQLite database and a table for user information
-conn = sqlite3.connect('user_database.db')
-cursor = conn.cursor()
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        password TEXT NOT NULL
-    )
-''')
-conn.commit()
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
 
-def start():
-    # Replace this with the code to launch your financial tracker
-    print("Financial Tracker launched!")
+class UserDatabaseManager:
+    def __init__(self, db_name='user_database.db'):
+        self.conn = sqlite3.connect(db_name)
+        self.cursor = self.conn.cursor()
+        self.create_table()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        self.conn.commit()
+
+    def add_user(self, user):
+        self.cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (user.username, user.password))
+        self.conn.commit()
+
+    def check_credentials(self, username, password):
+        self.cursor.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+        return self.cursor.fetchone() is not None
+
+    def user_exists(self, username):
+        self.cursor.execute('SELECT * FROM users WHERE username=?', (username,))
+        return self.cursor.fetchone() is not None
 
 class AuthenticationApp:
-    def __init__(self, root):
+    def __init__(self, root, db_manager):
         self.root = root
+        self.db_manager = db_manager
         self.root.title("Authentication App")
         self.root.geometry("400x300")  # Set a fixed size for the window
 
@@ -91,12 +110,9 @@ class AuthenticationApp:
         username = self.login_username_entry.get()
         password = self.login_password_entry.get()
 
-        # Check if the username and password match the database
-        cursor.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
-        if cursor.fetchone():
-            messagebox.showinfo("Login Successful", "Welcome, {}".format(username))
-            # Open a new window on successful login
-            self.open_welcome_window(username)
+        if self.db_manager.check_credentials(username, password):
+            self.root.destroy()
+            deploy()
         else:
             messagebox.showerror("Login Failed", "Invalid username or password")
 
@@ -104,30 +120,21 @@ class AuthenticationApp:
         username = self.signup_username_entry.get()
         password = self.signup_password_entry.get()
 
-        # Check if the username already exists in the database
-        cursor.execute('SELECT * FROM users WHERE username=?', (username,))
-        if cursor.fetchone():
+        if self.db_manager.user_exists(username):
             messagebox.showerror("Signup Failed", "Username already exists")
         else:
-            # Insert the new user into the database
-            cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
-            conn.commit()
+            new_user = User(username, password)
+            self.db_manager.add_user(new_user)
             messagebox.showinfo("Signup Successful", "Account created successfully. Please login.")
 
-    def open_welcome_window(self, username):
-        welcome_window = tk.Toplevel(self.root)
-        welcome_window.title("Welcome")
-        welcome_window.geometry("300x100")  # Set a fixed size for the welcome window
-        welcome_label = tk.Label(welcome_window, text=f"Hello, {username}! Welcome to the application.", font=('Helvetica', 14))
-        welcome_label.pack(padx=20, pady=20)
-
-        # Redirect to main.py
-        start()  # Call the main function to launch the financial tracker
-
-# Create the main application window
+# Create the main application window and database manager
 root = tk.Tk()
-app = AuthenticationApp(root)
+db_manager = UserDatabaseManager()
+
+# Pass the database manager to the AuthenticationApp
+app = AuthenticationApp(root, db_manager)
+
 root.mainloop()
 
 # Close the database connection after the main loop exits
-conn.close()
+db_manager.conn.close()
