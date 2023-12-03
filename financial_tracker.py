@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from income_expense_analyzer import analyze_expenses_and_income
 from weekly_plan_generator import generate_weekly_plan
+from financial_education import generate_financial_education
 
 class FinancialTracker:
     def __init__(self, root):
@@ -24,6 +25,10 @@ class FinancialTracker:
         # Generate Plan button
         generate_plan_button = tk.Button(self.root, text="Generate Weekly Plan", command=self.generate_plan)
         generate_plan_button.grid(row=2, column=1, padx=10, pady=10)
+
+        # Financial Education (Use Case)
+        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
+        education_button (row=2, column=2, padx=10, pady=10)
 
         # added code
         # Income section
@@ -108,7 +113,12 @@ class FinancialTracker:
     def generate_plan(self):
         # Call the external modules for analysis and plan generation
         analyze_expenses_and_income(self.income , self.expense_entries)
-        # generate_weekly_plan(self.expense_entries)
+        generate_weekly_plan(self.expense_entries)
+
+    def financal_education(self):
+        generate_financial_education(self.income)
+
+
 
 
 if __name__ == "__main__":
