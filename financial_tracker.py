@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 from income_expense_analyzer import analyze_expenses_and_income
 from weekly_plan_generator import generate_weekly_plan
-from financial_education import generate_financial_education
 
 class FinancialTracker:
     def __init__(self, root):
@@ -24,11 +23,11 @@ class FinancialTracker:
 
         # Generate Plan button
         generate_plan_button = tk.Button(self.root, text="Generate Weekly Plan", command=self.generate_plan)
-        generate_plan_button.grid(row=2, column=1, padx=10, pady=10)
+        generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
 
         # Financial Education (Use Case)
-        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
-        education_button (row=2, column=2, padx=10, pady=10)
+        # education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
+        # education_button (row=2, column=2, padx=10, pady=10)
 
         # added code
         # Income section
@@ -50,6 +49,11 @@ class FinancialTracker:
         # Expense section
         expense_label = tk.Label(self.root, text="Expense:")
         expense_label.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+
+        # Label to dynamically display added expenses
+        self.expense_display_var = tk.StringVar()
+        self.expense_display_label = tk.Label(self.root, textvariable=self.expense_display_var)
+        self.expense_display_label.grid(row=2, column=1, sticky=tk.W)
 
         # Dropdown menu for expense categories
         self.expense_category = tk.StringVar(self.root)
@@ -95,13 +99,23 @@ class FinancialTracker:
         if category != "Select Category":
             try:
                 expense_amount = float(expense_amount)
-                # Check if the category already has an expense recorded
-                if category not in self.expense_entries:
-                    # Add the expense to the dictionary
-                    self.expense_entries[category] = expense_amount
-                    messagebox.showinfo("Expense Added", f"{category} expense of {expense_amount} has been added.")
+
+                # Check if adding the new expense will exceed the income
+                if sum(self.expense_entries.values()) + expense_amount <= self.income:
+                    # Check if the category already has an expense recorded
+                    if category not in self.expense_entries:
+                        # Add the expense to the dictionary
+                        self.expense_entries[category] = expense_amount
+                        # Update the expense display label
+                        current_expense_text = self.expense_display_var.get()
+                        new_expense_text = f"{current_expense_text}\n{category}: {expense_amount}"
+                        self.expense_display_var.set(new_expense_text)
+                        # messagebox.showinfo("Expense Added", f"{category} expense of {expense_amount} has been added.")
+                    else:
+                        messagebox.showwarning("Duplicate Entry", f"Expense for {category} has already been recorded.")
                 else:
-                    messagebox.showwarning("Duplicate Entry", f"Expense for {category} has already been recorded.")
+                    messagebox.showwarning("Exceeded Income",
+                                           "Adding this expense will exceed the income. Please adjust.")
             except ValueError:
                 messagebox.showerror("Invalid Input", "Please enter a valid number for expense.")
         else:
@@ -114,11 +128,6 @@ class FinancialTracker:
         # Call the external modules for analysis and plan generation
         analyze_expenses_and_income(self.income , self.expense_entries)
         generate_weekly_plan(self.expense_entries)
-
-    def financal_education(self):
-        generate_financial_education(self.income)
-
-
 
 
 if __name__ == "__main__":
