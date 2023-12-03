@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from tkinter import messagebox
 import sqlite3
@@ -19,7 +20,9 @@ class UserDatabaseManager:
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                income REAL NOT NULL DEFAULT 0.0,
+                expense_entries TEXT NOT NULL DEFAULT '{}'
             )
         ''')
         self.conn.commit()
@@ -35,6 +38,10 @@ class UserDatabaseManager:
     def user_exists(self, username):
         self.cursor.execute('SELECT * FROM users WHERE username=?', (username,))
         return self.cursor.fetchone() is not None
+
+    def get_user(self, username):
+        self.cursor.execute('SELECT * FROM users WHERE username=?', (username,))
+        return self.cursor.fetchone()
 
 class AuthenticationApp:
     def __init__(self, root, db_manager):
@@ -55,6 +62,7 @@ class AuthenticationApp:
 
         # Show login form initially
         self.show_login_form()
+
 
     def create_login_form(self):
         self.login_label = tk.Label(self.login_frame, text="Login", font=('Helvetica', 20), bg="#f0f0f0", fg="#333")
@@ -110,9 +118,12 @@ class AuthenticationApp:
         username = self.login_username_entry.get()
         password = self.login_password_entry.get()
 
-        if self.db_manager.check_credentials(username, password):
+        user_data = self.db_manager.get_user(username)
+        if user_data and user_data[2] == password:  # Check if user exists and password is correct
+            # Update the income and expense_entries for the current user
+            self.current_user = User(username, password)
             self.root.destroy()
-            deploy()
+            deploy(self.current_user)  # Pass the current user to the main app
         else:
             messagebox.showerror("Login Failed", "Invalid username or password")
 
