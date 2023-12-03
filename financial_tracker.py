@@ -8,7 +8,6 @@ class FinancialTracker:
         self.root = root
         self.root.title("Financial Tracker")
 
-
         # Initialize variables
         self.income = 0.0
         self.expense_entries = []
@@ -26,8 +25,8 @@ class FinancialTracker:
         generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
 
         # Financial Education (Use Case)
-        # education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
-        # education_button (row=2, column=2, padx=10, pady=10)
+        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
+        education_button.grid(row=3, column=2, padx=10, pady=10)
 
         # added code
         # Income section
@@ -129,8 +128,17 @@ class FinancialTracker:
         analyze_expenses_and_income(self.income , self.expense_entries)
         generate_weekly_plan(self.expense_entries)
 
+    def financial_education(self):
+        pass
 
-if __name__ == "__main__":
+#
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     app = FinancialTracker(root)
+#     root.mainloop()
+
+def deploy():
     root = tk.Tk()
     app = FinancialTracker(root)
     root.mainloop()
+#
