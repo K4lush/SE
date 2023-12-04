@@ -37,7 +37,17 @@ class DatabaseHandler:
 
 
     def add_income(self, user_id, income_amount):
-        self.cursor.execute('INSERT INTO financial_data (user_id, income) VALUES (?, ?) ', (user_id, income_amount))
+        # Check if the user already has an entry in financial_data
+        self.cursor.execute("SELECT * FROM financial_data WHERE user_id = ?", (user_id,))
+        existing_entry = self.cursor.fetchone()
+
+        if existing_entry:
+            # Update the existing entry
+            self.cursor.execute('UPDATE financial_data SET income = ? WHERE user_id = ?', (income_amount, user_id))
+        else:
+            # Insert a new entry
+            self.cursor.execute('INSERT INTO financial_data (user_id, income) VALUES (?, ?) ', (user_id, income_amount))
+
         self.conn.commit()
 
     def add_expense(self, user_id, category, amount):
@@ -73,6 +83,14 @@ class FinancialTracker:
 
     def create_widgets(self):
         user_income = self.db_handler.get_income(self.user_id)
+        if not user_income:
+            self.display_main_menu_no_income()
+        else:
+            self.display_main_menu_logged()
+
+
+    def display_main_menu_no_income(self):
+        user_income = self.db_handler.get_income(self.user_id)
 
         if not user_income:
             # Generate Plan button
@@ -84,7 +102,7 @@ class FinancialTracker:
             education_button.grid(row=3, column=2, padx=10, pady=10)
 
             # Income section
-            income_label = tk.Label(self.root, text="Income:")
+            income_label = tk.Label(self.root, text="Monthly Income:")
             income_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
             self.income_entry = tk.Entry(self.root)
@@ -97,7 +115,7 @@ class FinancialTracker:
             self.income_display_label = tk.Label(self.root, text="No income added yet")
             self.income_display_label.grid(row=0, column=3, columnspan=2, padx=10, pady=10, sticky=tk.W)
 
-            expense_label = tk.Label(self.root, text="Expense:")
+            expense_label = tk.Label(self.root, text="Expense (Monthly Basis):")
             expense_label.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
 
             self.expense_display_var = tk.StringVar()
@@ -105,7 +123,7 @@ class FinancialTracker:
             self.expense_display_label.grid(row=2, column=1, columnspan=2, padx=10, pady=10, sticky=tk.W)
 
             # Dropdown menu for expense categories using Combobox
-            expense_categories = ["Food", "Essentials", "Shopping"]
+            expense_categories = ["Grocery", "Monthly Plans", "Transportation", "Takeaways", "Night-outs"]
             self.expense_category = ttk.Combobox(self.root, values=expense_categories, state="readonly")
             self.expense_category.set("Select Category")  # default value
             self.expense_category.grid(row=1, column=2, padx=10, pady=10)
@@ -116,23 +134,149 @@ class FinancialTracker:
             add_expense_button = tk.Button(self.root, text="Add Expense", command=self.add_expense)
             add_expense_button.grid(row=1, column=3, padx=10, pady=10)
 
-        else:
 
-            # Fetch expense entries from the database
-            expenses_from_db = self.db_handler.get_expenses(self.user_id)
+    def display_main_menu_logged(self):
+         # Fetch expense entries from the database
+         expenses_from_db = self.db_handler.get_expenses(self.user_id)
 
-            # Fetch income from the database
-            income_from_db = self.db_handler.get_income(self.user_id)
+         # Fetch income from the database
+         income_from_db = self.db_handler.get_income(self.user_id)
 
-            # Update the expense_entries dictionary
-            for expense in expenses_from_db:
-                category, amount = expense[0], expense[1]
-                self.expense_entries[category] = amount
+         # Update the expense_entries dictionary
+         for expense in expenses_from_db:
+             category, amount = expense[0], expense[1]
+             self.expense_entries[category] = amount
 
-            # Generate Plan button
-            generate_plan_button = tk.Button(self.root, text="Generate Weekly Plan",
-                                             command=self.generate_plan_logged(income_from_db, self.expense_entries))
-            generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
+         # Display income
+         income_label = tk.Label(self.root, text=f"Income: {income_from_db}")
+         income_label.grid(row=1, column=0, padx=1, pady=1, sticky=tk.W)
+
+         # Display username
+         income_label = tk.Label(self.root, text=f"Welcome back! {self.user_id}", font=('Helvetica', 20, 'bold'))
+         income_label.grid(row=0, column=0, padx=3, pady=3, sticky=tk.W)
+
+         # Edit Income button
+         edit_income_button = tk.Button(self.root, text="Edit Income", command=self.edit_income)
+         edit_income_button.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
+
+         # Display total expenses
+         total_expenses = sum(self.expense_entries.values())
+         expenses_label = tk.Label(self.root, text=f"This Months Expenses: {total_expenses}")
+         expenses_label.grid(row=2, column=0, padx=1, pady=1, sticky=tk.W)
+
+         # Edit Expenses button
+         edit_expenses_button = tk.Button(self.root, text="Edit Expenses", command=self.edit_expenses)
+         edit_expenses_button.grid(row=2, column=1, padx=10, pady=10, sticky=tk.W)
+
+         # Generate Plan button
+         generate_plan_button = tk.Button(self.root, text="Re-Analyse",
+                                          command=lambda: self.generate_plan_logged(income_from_db,
+                                                                                    self.expense_entries))
+         generate_plan_button.grid(row=3, column=0, padx=10, pady=10)
+
+    # Add the following method to the FinancialTracker class
+    def edit_expenses(self):
+        # Create a Toplevel window for editing expenses
+        edit_expenses_window = tk.Toplevel(self.root)
+        edit_expenses_window.title("Edit Expenses")
+
+        # Label and entry for selecting expense category
+        category_label = tk.Label(edit_expenses_window, text="Select Category:")
+        category_label.grid(row=0, column=0, padx=10, pady=10)
+
+        # Dropdown menu for expense categories using Combobox
+        expense_categories = list(self.expense_entries.keys())
+        category_var = tk.StringVar(value=expense_categories[0] if expense_categories else "")
+        category_combobox = ttk.Combobox(edit_expenses_window, values=expense_categories, textvariable=category_var,
+                                         state="readonly")
+        category_combobox.grid(row=0, column=1, padx=10, pady=10)
+
+        # Label and entry for entering new expense amount
+        new_amount_label = tk.Label(edit_expenses_window, text="New Amount:")
+        new_amount_label.grid(row=1, column=0, padx=10, pady=10)
+
+        new_amount_entry = tk.Entry(edit_expenses_window)
+        new_amount_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # Initialize expense_display_var
+        self.expense_display_var = tk.StringVar()
+
+        # Button to update expense
+        update_expense_button = tk.Button(edit_expenses_window, text="Update Expense",
+                                          command=lambda: self.update_expense(category_combobox.get(),
+                                                                              new_amount_entry.get(),
+                                                                              edit_expenses_window))
+        update_expense_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+
+    # Add the following method to the FinancialTracker class
+    def update_expense(self, category, new_amount, edit_expenses_window):
+        try:
+            new_amount = float(new_amount)
+
+            # Calculate total expenses with the new expense
+            total_expenses = sum(self.expense_entries.values()) + new_amount
+
+            # Check if total expenses are less than or equal to income
+            if total_expenses <= self.income:
+                # Update expense in the dictionary
+                self.expense_entries[category] = new_amount
+                # Update the expense display label
+                self.update_expense_display()
+                # Update expense in the database
+                self.db_handler.add_expense(self.user_id, category, new_amount)
+                # Close the edit expenses window
+                edit_expenses_window.destroy()
+            else:
+                messagebox.showerror("Invalid Input", "Expenses cannot be more than income.")
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number for the new expense amount.")
+
+    # Add the following method to the FinancialTracker class
+    def update_expense_display(self):
+        expense_text = ""
+        for category, amount in self.expense_entries.items():
+            expense_text += f"{category}: {amount:.2f}\n"
+        self.expense_display_var.set(expense_text)
+
+    def edit_income(self):
+        # Create a Toplevel window for editing income
+        edit_income_window = tk.Toplevel(self.root)
+        edit_income_window.title("Edit Income")
+
+        # Label and entry for new income
+        new_income_label = tk.Label(edit_income_window, text="New Income:")
+        new_income_label.grid(row=0, column=0, padx=10, pady=10)
+
+        new_income_entry = tk.Entry(edit_income_window)
+        new_income_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        # Button to update income
+        update_income_button = tk.Button(edit_income_window, text="Update Income",
+                                         command=lambda: self.update_income(new_income_entry.get(), edit_income_window))
+        update_income_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+
+    def update_income(self, new_income, edit_income_window):
+        try:
+            new_income = float(new_income)
+
+            # Calculate total expenses
+            total_expenses = sum(self.expense_entries.values())
+
+            # Check if new income is greater than or equal to total expenses
+            if new_income >= total_expenses:
+                # Update income in the database
+                self.db_handler.add_income(self.user_id, new_income)
+                # Close the edit income window
+                edit_income_window.destroy()
+                # Refresh the main window to display the updated income
+                self.root.destroy()
+                deploy_main_app(self.user_id)
+            else:
+                messagebox.showerror("Invalid Input", "Income should be greater than or equal to total expenses.")
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number for income.")
+
 
     def add_income(self):
         # Get the income amount from the Entry widget
@@ -201,12 +345,13 @@ class FinancialTracker:
     def generate_plan(self):
         # Call the external modules for analysis and plan generation
         analyze_expenses_and_income(self.income , self.expense_entries)
+    def generate_plan2(self):
         generate_weekly_plan(self.expense_entries)
 
     def generate_plan_logged(self, income, expense_entries):
         # Call the external modules for analysis and plan generation
         analyze_expenses_and_income(income , expense_entries)
-        generate_weekly_plan(self.expense_entries)
+
 
     def financial_education(self):
         pass
