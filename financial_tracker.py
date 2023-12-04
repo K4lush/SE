@@ -123,7 +123,7 @@ class FinancialTracker:
             self.expense_display_label.grid(row=2, column=1, columnspan=2, padx=10, pady=10, sticky=tk.W)
 
             # Dropdown menu for expense categories using Combobox
-            expense_categories = ["Grocery", "Monthly Plans", "Transportation", "Takeaways", "Night-outs"]
+            expense_categories = ["Grocery", "Shopping", "Transportation", "Takeaways", "Night-outs"]
             self.expense_category = ttk.Combobox(self.root, values=expense_categories, state="readonly")
             self.expense_category.set("Select Category")  # default value
             self.expense_category.grid(row=1, column=2, padx=10, pady=10)

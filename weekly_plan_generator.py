@@ -7,7 +7,6 @@ def calculate_weekly_budget(income, plan_percentages):
 
 def generate_weekly_plan(income):
     def on_plan_selection(plan):
-        # income = float(income_entry.get())  # Get income from user input
         plan_percentages = spending_plans[plan]
 
         # Calculate weekly budgets
@@ -16,27 +15,33 @@ def generate_weekly_plan(income):
         # Calculate daily budgets
         daily_budgets = {category: budget / 7 for category, budget in weekly_budgets.items()}
 
+        # Create a new window for displaying results
+        result_window = tk.Toplevel(root)
+        result_window.title("Spending Plan Results")
+        result_window.geometry("250x250")  # Set a larger window size
+
         # Display weekly budgets
         weekly_text = "Weekly Spending Plan:\n"
         for category, budget in weekly_budgets.items():
-            weekly_text += f"{category}: ${budget:.2f}\n"
+            weekly_text += f"{category.capitalize()}: ${budget:.2f}\n"
 
         # Display daily budgets
-        daily_text = "\nDaily Spending Plan:\n"
+        daily_text = "\nThis means each day you can spend:\n"
         for category, budget in daily_budgets.items():
-            daily_text += f"{category}: ${budget:.2f}\n"
+            daily_text += f"{category.capitalize()}: ${budget:.2f}\n"
 
-        # Update the labels with the calculated budgets
-        weekly_label.config(text=weekly_text)
-        daily_label.config(text=daily_text)
+        # Create labels for weekly and daily budgets in the new window
+        weekly_label = ttk.Label(result_window, text=weekly_text, justify=tk.LEFT, font=("Arial", 12))
+        daily_label = ttk.Label(result_window, text=daily_text, justify=tk.LEFT, font=("Arial", 12))
+
+        # Pack the labels in the new window
+        weekly_label.pack(pady=10)
+        daily_label.pack(pady=10)
 
     # Define spending plans with fixed percentages for each category
     spending_plans = {
-        # 30% saved
         'Budget Friendly Plan': {'Grocery': 0.3, 'Shopping': 0.1, 'Transportation': 0.2, 'Takeaways': 0.05, 'Night-outs': 0.05},
-        # 20% saved
         'Normal Plan': {'Grocery': 0.2, 'Shopping': 0.2, 'Transportation': 0.2, 'Takeaways': 0.1, 'Night-outs': 0.1},
-        # 10% saved
         'Excessive Plan': {'Grocery': 0.2, 'Shopping': 0.2, 'Transportation': 0.1, 'Takeaways': 0.2, 'Night-outs': 0.2}
     }
 
@@ -57,14 +62,6 @@ def generate_weekly_plan(income):
     # Create buttons for each spending plan
     for plan in spending_plans:
         create_plan_button(plan)
-
-    # Create labels for weekly and daily budgets
-    weekly_label = ttk.Label(root, text="Weekly Spending Plan:\n", justify=tk.LEFT)
-    daily_label = ttk.Label(root, text="\nDaily Spending Plan:\n", justify=tk.LEFT)
-
-    # Pack the labels under the buttons
-    weekly_label.pack(pady=10)
-    daily_label.pack(pady=10)
 
     # Run the Tkinter event loop
     root.mainloop()
