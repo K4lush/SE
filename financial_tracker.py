@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from income_expense_analyzer import analyze_expenses_and_income
 from weekly_plan_generator import generate_weekly_plan
+from financial_education import display_financial_education
 import sqlite3
 
 class DatabaseHandler:
@@ -173,6 +174,10 @@ class FinancialTracker:
                                           command=lambda: self.generate_plan_logged(income_from_db,
                                                                                     self.expense_entries))
          generate_plan_button.grid(row=3, column=0, padx=10, pady=10)
+
+         # Financial Education (Use Case)
+         education_button = tk.Button(self.root, text="Financial Education", command=lambda: self.financial_education(income_from_db))
+         education_button.grid(row=3, column=2, padx=10, pady=10)
 
     # Add the following method to the FinancialTracker class
     def edit_expenses(self):
@@ -353,8 +358,10 @@ class FinancialTracker:
         analyze_expenses_and_income(income , expense_entries)
 
 
-    def financial_education(self):
-        pass
+    def financial_education(self, income):
+
+        display_financial_education(income)
+
 
 def deploy_main_app(user_id):
     # Create a DatabaseHandler instance

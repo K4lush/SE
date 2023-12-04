@@ -74,12 +74,6 @@ def display_financial_education(income):
     budgeting_frame = ttk.Frame(scroll_frame, padding=10, relief="groove")
     budgeting_frame.pack(pady=20)
 
-    budgeting_label = ttk.Label(budgeting_frame, text="Add your budgeting goals:", font=("Helvetica", 16))
-    budgeting_label.grid(row=0, column=0, pady=10)
-
-    budgeting_text = tk.Text(budgeting_frame, height=3, width=70, wrap=tk.WORD, font=("Arial", 12))
-    budgeting_text.grid(row=1, column=0, pady=5)
-
     # Advice Section
     advice_frame = ttk.Frame(scroll_frame, padding=10, relief="groove")
     advice_frame.pack(pady=20)
@@ -96,20 +90,3 @@ def display_financial_education(income):
     scroll_frame.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
 
-# Create the main window
-# main_window = tk.Tk()
-# main_window.title("Feature-rich Financial Advice")
-#
-# # Center the window on the screen
-# screen_width = main_window.winfo_screenwidth()
-# screen_height = main_window.winfo_screenheight()
-# x_coordinate = (screen_width - 300) // 2
-# y_coordinate = (screen_height - 100) // 2
-# main_window.geometry(f"300x100+{x_coordinate}+{y_coordinate}")
-#
-# # Button to open the financial advice GUI
-# open_button = ttk.Button(main_window, text="Open Financial Advice", command=lambda: display_financial_education(50000))
-# open_button.pack(pady=30)
-#
-# # Start the Tkinter event loop
-# main_window.mainloop()
