@@ -2,7 +2,7 @@ import json
 import tkinter as tk
 from tkinter import messagebox
 import sqlite3
-from financial_tracker import deploy
+# from financial_tracker import deploy
 
 class User:
     def __init__(self, username, password, status):
@@ -22,8 +22,6 @@ class UserDatabaseManager:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL,
                 password TEXT NOT NULL,
-                income REAL NOT NULL DEFAULT 0.0,
-                expense_entries TEXT NOT NULL DEFAULT '{}'
             )
         ''')
         self.conn.commit()
@@ -124,7 +122,7 @@ class AuthenticationApp:
             # Update the income and expense_entries for the current user
             self.current_user = User(username, password, status=True)
             self.root.destroy()
-            deploy(self.current_user)  # Pass the current user to the main app
+            # deploy(self.current_user)  # Pass the current user to the main app
         else:
             messagebox.showerror("Login Failed", "Invalid username or password")
 
