@@ -1,11 +1,10 @@
-import json
-import tkinter as tk
-from tkinter import messagebox
 import sqlite3
-# from financial_tracker import deploy
+from tkinter import messagebox
+import tkinter as tk
+from financial_tracker import deploy_main_app
 
 class User:
-    def __init__(self, username, password, status):
+    def __init__(self, username, password):
         self.username = username
         self.password = password
 
@@ -20,10 +19,11 @@ class UserDatabaseManager:
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL,
-                password TEXT NOT NULL,
-            )
+                password TEXT NOT NULL)
+            
         ''')
         self.conn.commit()
+
 
     def add_user(self, user):
         self.cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (user.username, user.password))
@@ -49,8 +49,8 @@ class AuthenticationApp:
         self.root.geometry("400x300")  # Set a fixed size for the window
 
         # Create frames for login and signup forms
-        self.login_frame = tk.Frame(root, bg="#f0f0f0")
-        self.signup_frame = tk.Frame(root, bg="#f0f0f0")
+        self.login_frame = tk.Frame(root)
+        self.signup_frame = tk.Frame(root)
 
         # Set up login form
         self.create_login_form()
@@ -61,46 +61,46 @@ class AuthenticationApp:
         # Show login form initially
         self.show_login_form()
 
-
     def create_login_form(self):
-        self.login_label = tk.Label(self.login_frame, text="Login", font=('Helvetica', 20), bg="#f0f0f0", fg="#333")
+        self.login_label = tk.Label(self.login_frame, text="Login")
         self.login_label.pack(pady=10)
 
-        self.login_username_label = tk.Label(self.login_frame, text="Username:", bg="#f0f0f0", fg="#333")
+        self.login_username_label = tk.Label(self.login_frame, text="Username:")
         self.login_username_label.pack()
-        self.login_username_entry = tk.Entry(self.login_frame, bg="white", fg="#333")
+        self.login_username_entry = tk.Entry(self.login_frame)
         self.login_username_entry.pack(pady=5)
 
-        self.login_password_label = tk.Label(self.login_frame, text="Password:", bg="#f0f0f0", fg="#333")
+        self.login_password_label = tk.Label(self.login_frame, text="Password:")
         self.login_password_label.pack()
-        self.login_password_entry = tk.Entry(self.login_frame, show="*", bg="white", fg="#333")
+        self.login_password_entry = tk.Entry(self.login_frame, show="*")
         self.login_password_entry.pack(pady=10)
 
-        self.login_button = tk.Button(self.login_frame, text="Login", command=self.login, bg="#4CAF50", fg="white", relief=tk.GROOVE)
+        self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
         self.login_button.pack(pady=10)
 
-        self.signup_link = tk.Label(self.login_frame, text="Don't have an account? Signup here", fg="#007BFF", cursor="hand2", bg="#f0f0f0")
+        self.signup_link = tk.Label(self.login_frame, text="Don't have an account? Signup here", fg="#007BFF",
+                                    cursor="hand2")
         self.signup_link.pack()
         self.signup_link.bind("<Button-1>", lambda e: self.show_signup_form())
 
     def create_signup_form(self):
-        self.signup_label = tk.Label(self.signup_frame, text="Signup", font=('Helvetica', 20), bg="#f0f0f0", fg="#333")
+        self.signup_label = tk.Label(self.signup_frame, text="Signup")
         self.signup_label.pack(pady=10)
 
-        self.signup_username_label = tk.Label(self.signup_frame, text="Username:", bg="#f0f0f0", fg="#333")
+        self.signup_username_label = tk.Label(self.signup_frame, text="Username:")
         self.signup_username_label.pack()
-        self.signup_username_entry = tk.Entry(self.signup_frame, bg="white", fg="#333")
+        self.signup_username_entry = tk.Entry(self.signup_frame)
         self.signup_username_entry.pack(pady=5)
 
-        self.signup_password_label = tk.Label(self.signup_frame, text="Password:", bg="#f0f0f0", fg="#333")
+        self.signup_password_label = tk.Label(self.signup_frame, text="Password:")
         self.signup_password_label.pack()
-        self.signup_password_entry = tk.Entry(self.signup_frame, show="*", bg="white", fg="#333")
+        self.signup_password_entry = tk.Entry(self.signup_frame, show="*")
         self.signup_password_entry.pack(pady=10)
 
-        self.signup_button = tk.Button(self.signup_frame, text="Signup", command=self.signup, bg="#007BFF", fg="white", relief=tk.GROOVE)
+        self.signup_button = tk.Button(self.signup_frame, text="Signup", command=self.signup)
         self.signup_button.pack(pady=10)
 
-        self.login_link = tk.Label(self.signup_frame, text="Already have an account? Login here", fg="#007BFF", cursor="hand2", bg="#f0f0f0")
+        self.login_link = tk.Label(self.signup_frame, text="Already have an account? Login here")
         self.login_link.pack()
         self.login_link.bind("<Button-1>", lambda e: self.show_login_form())
 
@@ -117,11 +117,9 @@ class AuthenticationApp:
         password = self.login_password_entry.get()
 
         user_data = self.db_manager.get_user(username)
-        if user_data and user_data[2] == password:  # Check if user exists and password is correct
-            # Update the income and expense_entries for the current user
-            self.current_user = User(username, password, status=True)
+        if user_data and user_data[2] == password:
             self.root.destroy()
-            # deploy(self.current_user)  # Pass the current user to the main app
+            deploy_main_app(username)  # Pass the current user to the main app
         else:
             messagebox.showerror("Login Failed", "Invalid username or password")
 
@@ -132,9 +130,10 @@ class AuthenticationApp:
         if self.db_manager.user_exists(username):
             messagebox.showerror("Signup Failed", "Username already exists")
         else:
-            new_user = User(username, password, status=True)
+            new_user = User(username, password)
             self.db_manager.add_user(new_user)
             messagebox.showinfo("Signup Successful", "Account created successfully. Please login.")
+            self.show_login_form()  # Call the login method for the newly registered user
 
 # Create the main application window and database manager
 root = tk.Tk()

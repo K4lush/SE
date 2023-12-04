@@ -1,71 +1,109 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from income_expense_analyzer import analyze_expenses_and_income
 from weekly_plan_generator import generate_weekly_plan
+import sqlite3
+
+class DatabaseHandler:
+    def __init__(self, db_name="financial_data.db"):
+        self.conn = sqlite3.connect(db_name)
+        self.cursor = self.conn.cursor()
+        self.create_tables()
+
+    def create_tables(self):
+        self.conn.execute('''
+            CREATE TABLE IF NOT EXISTS financial_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                income REAL NOT NULL
+            )
+        ''')
+        self.conn.commit()
+
+    def add_income(self, user_id, income_amount):
+        print(user_id)
+        print(income_amount)
+        self.cursor.execute('INSERT INTO financial_data (user_id, income) VALUES (?, ?) ', (user_id, income_amount))
+        self.conn.commit()
+        print('success')
+
+    def get_income(self, user_id):
+        self.cursor.execute("SELECT income FROM financial_data WHERE user_id = ?", (user_id,))
+        result = self.cursor.fetchone()
+        return result[0] if result else None
 
 class FinancialTracker:
-    def __init__(self, root):
+    def __init__(self, root, user_id, db_handler):
+        '''
+
+        :param root: tkinter window
+        :param usr: current user logged in!
+        '''
         self.root = root
         self.root.title("Financial Tracker")
+        self.user_id = user_id  # Store the user_id
 
         # Initialize variables
         self.income = 0.0
-        self.expense_entries = []
+        # Initialize expense_entries as a dictionary
+        self.expense_entries = {}
+
+        self.db_handler = db_handler  # Move this line up
 
         # Create GUI elements
         self.create_widgets()
 
-        # Initialize expense_entries as a dictionary
-        self.expense_entries = {}
-
     def create_widgets(self):
+        user_income = self.db_handler.get_income(self.user_id)
 
-        # Generate Plan button
-        generate_plan_button = tk.Button(self.root, text="Generate Weekly Plan", command=self.generate_plan)
-        generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
+        if not user_income:
+            # Generate Plan button
+            generate_plan_button = tk.Button(self.root, text="Generate Weekly Plan", command=self.generate_plan)
+            generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
 
-        # Financial Education (Use Case)
-        education_button = tk.Button(self.root, text="Financial Educatinon", command=self.financial_education)
-        education_button.grid(row=3, column=2, padx=10, pady=10)
+            # Financial Education (Use Case)
+            education_button = tk.Button(self.root, text="Financial Education", command=self.financial_education)
+            education_button.grid(row=3, column=2, padx=10, pady=10)
 
-        # added code
-        # Income section
-        income_label = tk.Label(self.root, text="Income:")
-        income_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+            # Income section
+            income_label = tk.Label(self.root, text="Income:")
+            income_label.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
+            self.income_entry = tk.Entry(self.root)
+            self.income_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        # Income section
-        self.income_entry = tk.Entry(self.root)
-        self.income_entry.grid(row=0, column=1, padx=10, pady=10)
+            add_income_button = tk.Button(self.root, text="Add Income", command=self.add_income)
+            add_income_button.grid(row=0, column=2, padx=10, pady=10)
 
-        add_income_button = tk.Button(self.root, text="Add Income", command=self.add_income)
-        add_income_button.grid(row=0, column=2, padx=10, pady=10)
+            # Label to display the added income
+            self.income_display_label = tk.Label(self.root, text="No income added yet")
+            self.income_display_label.grid(row=0, column=3, columnspan=2, padx=10, pady=10, sticky=tk.W)
 
-        # Label to display the added income
-        self.income_display_label = tk.Label(self.root, text="No income added yet")
-        self.income_display_label.grid(row=0, column=3, columnspan=2, padx=10, pady=10, sticky=tk.W)
+            # Expense section
+            # expense_frame = tk.Frame(self.root)
+            # expense_frame.grid(row=1, column=0, padx=10, pady=10)
 
-        # Expense section
-        expense_label = tk.Label(self.root, text="Expense:")
-        expense_label.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+            expense_label = tk.Label(self.root, text="Expense:")
+            expense_label.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
 
-        # Label to dynamically display added expenses
-        self.expense_display_var = tk.StringVar()
-        self.expense_display_label = tk.Label(self.root, textvariable=self.expense_display_var)
-        self.expense_display_label.grid(row=2, column=1, sticky=tk.W)
+            self.expense_display_var = tk.StringVar()
+            self.expense_display_label = tk.Label(self.root, textvariable=self.expense_display_var)
+            self.expense_display_label.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky=tk.W)
 
-        # Dropdown menu for expense categories
-        self.expense_category = tk.StringVar(self.root)
-        self.expense_category.set("Select Category")  # default value
-        expense_categories = ["Food", "Essentials", "Shopping"]
-        expense_dropdown = tk.OptionMenu(self.root, self.expense_category, *expense_categories)
-        expense_dropdown.grid(row=1, column=2, padx=10, pady=10)
+            # Dropdown menu for expense categories using Combobox
+            expense_categories = ["Food", "Essentials", "Shopping"]
+            self.expense_category = ttk.Combobox(self.root, values=expense_categories, state="readonly")
+            self.expense_category.set("Select Category")  # default value
+            self.expense_category.grid(row=1, column=2, padx=10, pady=10)
 
-        self.expense_entry = tk.Entry(self.root)
-        self.expense_entry.grid(row=1, column=1, padx=10, pady=10)
+            self.expense_entry = tk.Entry(self.root)
+            self.expense_entry.grid(row=1, column=1, padx=10, pady=10)
 
-        add_expense_button = tk.Button(self.root, text="Add Expense", command=self.add_expense)
-        add_expense_button.grid(row=1, column=3, padx=10, pady=10)
+            add_expense_button = tk.Button(self.root, text="Add Expense", command=self.add_expense)
+            add_expense_button.grid(row=1, column=3, padx=10, pady=10)
+
+        else:
+            print('data')
 
     def add_income(self):
         # Get the income amount from the Entry widget
@@ -78,10 +116,14 @@ class FinancialTracker:
             self.income = income_amount
 
             # Display a message box with the added income amount
-            print("Income Added", f"Income of {income_amount} has been added.")
+            # print("Income Added", f"Income of {income_amount} has been added.")
 
             # Update the label with the added income amount
             self.income_display_label.config(text=f"Added income: {income_amount}")
+
+            # Add income to the database
+            # self.add_income_to_db(income_amount)
+            self.db_handler.add_income(self.user_id, income_amount)
 
             # Clear the income entry field for new input
             self.income_entry.delete(0, tk.END)
@@ -107,6 +149,7 @@ class FinancialTracker:
                         self.expense_entries[category] = expense_amount
                         # Update the expense display label
                         current_expense_text = self.expense_display_var.get()
+                        self.add_expense_to_db(category, expense_amount)
                         new_expense_text = f"{current_expense_text}\n{category}: {expense_amount}"
                         self.expense_display_var.set(new_expense_text)
                         # messagebox.showinfo("Expense Added", f"{category} expense of {expense_amount} has been added.")
@@ -131,14 +174,11 @@ class FinancialTracker:
     def financial_education(self):
         pass
 
-#
-if __name__ == "__main__":
+def deploy_main_app(user_id):
+    # Create a DatabaseHandler instance
+    db_handler = DatabaseHandler()
+
     root = tk.Tk()
-    app = FinancialTracker(root)
+    app = FinancialTracker(root, user_id, db_handler)
     root.mainloop()
 
-# def deploy():
-#     root = tk.Tk()
-#     app = FinancialTracker(root)
-#     root.mainloop()
-#
