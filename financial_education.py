@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-def display_financial_education(income):
+def display_financial_education():
     advice_list = [
         "Create a budget to track your spending and set financial goals.",
         "Save at least 20% of your income in a dedicated savings account.",
@@ -44,13 +44,6 @@ def display_financial_education(income):
     scroll_frame = ttk.Frame(canvas)
     canvas.create_window((0, 0), window=scroll_frame, anchor=tk.NW)
 
-    # Income Section
-    income_frame = ttk.Frame(scroll_frame, padding=10, relief="groove")
-    income_frame.pack(pady=20)
-
-    income_label = ttk.Label(income_frame, text=f"Your Income: ${income:,.2f}", font=("Helvetica", 16))
-    income_label.grid(row=0, column=0, pady=10)
-
     # Tips Section
     tips_frame = ttk.Frame(scroll_frame, padding=10, relief="groove")
     tips_frame.pack(pady=20)
@@ -70,10 +63,6 @@ def display_financial_education(income):
                                    "2. Find ways to reduce utility bills.\n"
                                    "3. Look for discounts and use coupons when shopping.")
 
-    # Budgeting Goals Section
-    budgeting_frame = ttk.Frame(scroll_frame, padding=10, relief="groove")
-    budgeting_frame.pack(pady=20)
-
     # Advice Section
     advice_frame = ttk.Frame(scroll_frame, padding=10, relief="groove")
     advice_frame.pack(pady=20)
@@ -90,3 +79,20 @@ def display_financial_education(income):
     scroll_frame.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
 
+# Create the main window
+# main_window = tk.Tk()
+# main_window.title("Feature-rich Financial Advice")
+#
+# # Center the window on the screen
+# screen_width = main_window.winfo_screenwidth()
+# screen_height = main_window.winfo_screenheight()
+# x_coordinate = (screen_width - 300) // 2
+# y_coordinate = (screen_height - 100) // 2
+# main_window.geometry(f"300x100+{x_coordinate}+{y_coordinate}")
+#
+# # Button to open the financial advice GUI
+# open_button = ttk.Button(main_window, text="Open Financial Advice", command=lambda: display_financial_education(50000))
+# open_button.pack(pady=30)
+#
+# # Start the Tkinter event loop
+# main_window.mainloop()

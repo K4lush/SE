@@ -1,10 +1,43 @@
 import sqlite3
 from tkinter import messagebox
 import tkinter as tk
+import re
 from financial_tracker import deploy_main_app
+
+class PasswordPolicy:
+    @staticmethod
+    def is_strong(password):
+        # Define password policy criteria
+        min_length = 8
+        has_uppercase = any(char.isupper() for char in password)
+        has_lowercase = any(char.islower() for char in password)
+        has_digit = any(char.isdigit() for char in password)
+        has_special_char = re.search(r"[!@#$%^&*(),.?\":{}|<>]", password) is not None
+
+        # Check if the password meets all criteria
+        return (
+            len(password) >= min_length
+            and has_uppercase
+            and has_lowercase
+            and has_digit
+            and has_special_char
+        )
+
+class UsernamePolicy:
+    @staticmethod
+    def is_valid(username):
+        # Define username policy criteria
+        min_length = 5
+
+        # Check if the username meets the criteria
+        return len(username) >= min_length
 
 class User:
     def __init__(self, username, password):
+        if not UsernamePolicy.is_valid(username):
+            raise ValueError("Invalid username. Username must be at least 5 characters long.")
+        if not PasswordPolicy.is_strong(password):
+            raise ValueError("Weak password. Please use a stronger password.")
         self.username = username
         self.password = password
 
@@ -20,10 +53,8 @@ class UserDatabaseManager:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL,
                 password TEXT NOT NULL)
-            
         ''')
         self.conn.commit()
-
 
     def add_user(self, user):
         self.cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (user.username, user.password))
@@ -127,13 +158,16 @@ class AuthenticationApp:
         username = self.signup_username_entry.get()
         password = self.signup_password_entry.get()
 
-        if self.db_manager.user_exists(username):
-            messagebox.showerror("Signup Failed", "Username already exists")
-        else:
+        try:
             new_user = User(username, password)
-            self.db_manager.add_user(new_user)
-            messagebox.showinfo("Signup Successful", "Account created successfully. Please login.")
-            self.show_login_form()  # Call the login method for the newly registered user
+            if self.db_manager.user_exists(username):
+                messagebox.showerror("Signup Failed", "Username already exists")
+            else:
+                self.db_manager.add_user(new_user)
+                messagebox.showinfo("Signup Successful", "Account created successfully. Please login.")
+                self.show_login_form()  # Call the login method for the newly registered user
+        except ValueError as e:
+            messagebox.showerror("Signup Failed", str(e))
 
 # Create the main application window and database manager
 root = tk.Tk()

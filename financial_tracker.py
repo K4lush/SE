@@ -98,6 +98,9 @@ class FinancialTracker:
             generate_plan_button = tk.Button(self.root, text="Generate Weekly Plan", command=self.generate_plan)
             generate_plan_button.grid(row=3, column=1, padx=10, pady=10)
 
+            reset_expenses_button = tk.Button(self.root, text="Reset Expenses", command=self.reset_expenses)
+            reset_expenses_button.grid(row=3, column=1, padx=10, pady=10)
+
             # Financial Education (Use Case)
             education_button = tk.Button(self.root, text="Financial Education", command=self.financial_education)
             education_button.grid(row=3, column=2, padx=10, pady=10)
@@ -176,7 +179,7 @@ class FinancialTracker:
          generate_plan_button.grid(row=3, column=0, padx=10, pady=10)
 
          # Financial Education (Use Case)
-         education_button = tk.Button(self.root, text="Financial Education", command=lambda: self.financial_education(income_from_db))
+         education_button = tk.Button(self.root, text="Financial Education", command=lambda: self.financial_education)
          education_button.grid(row=3, column=2, padx=10, pady=10)
 
     # Add the following method to the FinancialTracker class
@@ -213,6 +216,19 @@ class FinancialTracker:
                                                                               edit_expenses_window))
         update_expense_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
+    # Add the following method to the FinancialTracker class
+    def reset_expenses(self):
+        # Clear the expense_entries dictionary
+        self.expense_entries = {}
+
+        # Clear the expense display label
+        self.expense_display_var.set("")
+
+        # Update the expense display label to show that expenses have been reset
+        self.expense_display_label.config(text="Expenses have been reset.")
+
+        # Clear expenses in the database
+        self.db_handler.clear_expenses(self.user_id)
 
     # Add the following method to the FinancialTracker class
     def update_expense(self, category, new_amount, edit_expenses_window):
@@ -261,28 +277,32 @@ class FinancialTracker:
                                          command=lambda: self.update_income(new_income_entry.get(), edit_income_window))
         update_income_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
 
+    # Add the following method to the FinancialTracker class
     def update_income(self, new_income, edit_income_window):
         try:
             new_income = float(new_income)
 
-            # Calculate total expenses
-            total_expenses = sum(self.expense_entries.values())
+            if 0 <= new_income <= 10000:  # Check if the new income is within the limit
+                # Calculate total expenses
+                total_expenses = sum(self.expense_entries.values())
 
-            # Check if new income is greater than or equal to total expenses
-            if new_income >= total_expenses:
-                # Update income in the database
-                self.db_handler.add_income(self.user_id, new_income)
-                # Close the edit income window
-                edit_income_window.destroy()
-                # Refresh the main window to display the updated income
-                self.root.destroy()
-                deploy_main_app(self.user_id)
+                # Check if new income is greater than or equal to total expenses
+                if new_income >= total_expenses:
+                    # Update income in the database
+                    self.db_handler.add_income(self.user_id, new_income)
+                    # Close the edit income window
+                    edit_income_window.destroy()
+                    # Refresh the main window to display the updated income
+                    self.root.destroy()
+                    deploy_main_app(self.user_id)
+                else:
+                    messagebox.showerror("Invalid Input", "Income should be greater than or equal to total expenses.")
             else:
-                messagebox.showerror("Invalid Input", "Income should be greater than or equal to total expenses.")
+                messagebox.showwarning("Exceeded Limit", "Income cannot exceed $10,000.")
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter a valid number for income.")
 
-
+    # Add the following method to the FinancialTracker class
     def add_income(self):
         # Get the income amount from the Entry widget
         income_amount = self.income_entry.get()
@@ -290,21 +310,25 @@ class FinancialTracker:
         # Check if the income amount is not empty and is a valid number
         try:
             income_amount = float(income_amount)
+
             # Add the income amount to the income_entries list
-            self.income = income_amount
+            if 0 <= income_amount <= 10000:  # Check if the income is within the limit
+                self.income = income_amount
 
-            # Display a message box with the added income amount
-            # print("Income Added", f"Income of {income_amount} has been added.")
+                # Display a message box with the added income amount
+                # print("Income Added", f"Income of {income_amount} has been added.")
 
-            # Update the label with the added income amount
-            self.income_display_label.config(text=f"Added income: {income_amount}")
+                # Update the label with the added income amount
+                self.income_display_label.config(text=f"Added income: {income_amount}")
 
-            # Add income to the database
-            # self.add_income_to_db(income_amount)
-            self.db_handler.add_income(self.user_id, income_amount)
+                # Add income to the database
+                # self.add_income_to_db(income_amount)
+                self.db_handler.add_income(self.user_id, income_amount)
 
-            # Clear the income entry field for new input
-            self.income_entry.delete(0, tk.END)
+                # Clear the income entry field for new input
+                self.income_entry.delete(0, tk.END)
+            else:
+                messagebox.showwarning("Exceeded Limit", "Income cannot exceed $10,000.")
         except ValueError:
             # Display an error message if the input is not a valid number
             messagebox.showerror("Invalid Input", "Please enter a valid number for income.")
@@ -357,10 +381,8 @@ class FinancialTracker:
         # Call the external modules for analysis and plan generation
         analyze_expenses_and_income(income , expense_entries)
 
-
-    def financial_education(self, income):
-
-        display_financial_education(income)
+    def financial_education(self):
+        display_financial_education()
 
 
 def deploy_main_app(user_id):
